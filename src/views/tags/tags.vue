@@ -10,29 +10,79 @@
             </div>
         </div>
         <div class="tag-box">
-            <template v-for="i in 6">
-                <div class="item">
-                    <i class="iconfont icon-shanchu1"></i>
-                    <span>前端</span>
-                </div>
-            </template>
+            <div class="item" v-for="item in tags" :key="item.name">
+                <i class="iconfont icon-shanchu1" @click="showDeleteDialog(item._id)"></i>
+                <span>{{ item.name }}</span>
+            </div>
+            <el-dialog v-model="dialogVisible" title="Tips" width="30%">
+                <span>确定删除吗</span>
+                <template #footer>
+                    <span class="dialog-footer">
+                        <el-button @click="dialogVisible = false">取消</el-button>
+                        <el-button type="primary" @click="deleteItem">
+                            确定
+                        </el-button>
+                    </span>
+                </template>
+            </el-dialog>
         </div>
-
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+    import { ref } from 'vue'
+    import { getTag, addTag, deleteTag } from '@/service/index'
 
-    let showModal = ref(false)
-    function showNewTagModal() {
+    // 获取标签
+    const tags = ref([])
+    const loadTags = async () => {
+        const res = await getTag()
+        tags.value = res.tags
+    }
+    loadTags()
+
+    // 添加标签
+    const showModal = ref(false)
+    const newTagName = ref('')
+
+   const showNewTagModal = () => {
         showModal.value = true
-        console.log(111)
+   }
+
+   const createTag = async () => {
+        const name = newTagName.value.trim()
+        const res = await addTag(name)
+        console.log(res)
+        newTagName.value = ''
+        showModal.value = false
+        loadTags()
+   }
+
+   const closeModal = () => {
+        showModal.value = false
+        newTagName.value = ''
+   }
+
+    //删除分类 
+    const dialogVisible = ref(false)
+    const deleteItemId = ref(null)
+
+    const showDeleteDialog = (id) => {
+        deleteItemId.value = id;
+        dialogVisible.value = true;
+    }
+
+    const deleteItem = async () => {
+        const res = await deleteTag(deleteItemId.value)
+        console.log(res)
+        dialogVisible.value = false
+        loadTags()
     }
 </script>
 
 <style lang="less" scoped>
 .tag-box {
+    min-height: 204px;
     margin: 30px 30px;
     padding: 60px 100px;
     display: flex;
@@ -96,7 +146,7 @@ import { ref } from 'vue';
             color: #fff;
 
             &:last-child {
-                background-color: red;
+                background-color: rgb(172, 172, 172);
             }
         }
     }

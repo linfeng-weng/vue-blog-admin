@@ -10,29 +10,80 @@
             </div>
         </div>
         <div class="category-box">
-            <template v-for="i in 6">
-                <div class="item">
-                    <i class="iconfont icon-shanchu1"></i>
-                    <span>前端</span>
-                </div>
-            </template>
+            <div class="item" v-for="item in categories" :key="item.name">
+                <i class="iconfont icon-shanchu1" @click="showDeleteDialog(item._id)"></i>
+                <span>{{ item.name }}</span>
+            </div>
+            <el-dialog v-model="dialogVisible" title="Tips" width="30%">
+                <span>确定删除吗</span>
+                <template #footer>
+                    <span class="dialog-footer">
+                        <el-button @click="dialogVisible = false">取消</el-button>
+                        <el-button type="primary" @click="deleteItem">
+                            确定
+                        </el-button>
+                    </span>
+                </template>
+            </el-dialog>
         </div>
-
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+    import { ref } from 'vue'
+    import { addCategory, getCategory, deleteCategory } from '@/service/index'
+    
 
-    let showModal = ref(false)
-    function showNewCategoryModal() {
+    // 获取分类
+    const categories = ref([])
+    const loadCategories = async () => {
+        const res = await getCategory()
+        categories.value = res.category
+    }
+    loadCategories()
+
+    // 添加分类
+    const showModal = ref(false)
+    const newCategoryName = ref('')
+
+    const showNewCategoryModal = () => {
         showModal.value = true
-        console.log(111)
+    }
+
+    const createCategory = async () => {
+        const name = newCategoryName.value.trim()
+        const res = await addCategory(name)
+        console.log(res)
+        newCategoryName.value = ''
+        showModal.value = false
+        loadCategories()
+    }
+
+    const closeModal = () => {
+        showModal.value = false
+        newCategoryName.value = ''
+    } 
+
+    // 删除分类
+    const dialogVisible = ref(false)
+    const deleteItemId = ref(null)
+
+    const showDeleteDialog = (id) => {
+        deleteItemId.value = id;
+        dialogVisible.value = true;
+    }
+
+    const deleteItem = async () => {
+        const res = await deleteCategory(deleteItemId.value)
+        console.log(res)
+        dialogVisible.value = false
+        loadCategories()
     }
 </script>
 
 <style lang="less" scoped>
 .category-box {
+    min-height: 204px;
     margin: 30px 30px;
     padding: 60px 100px;
     display: flex;
@@ -100,7 +151,7 @@ import { ref } from 'vue';
             color: #fff;
 
             &:last-child {
-                background-color: red;
+                background-color: rgb(172, 172, 172);
             }
         }
     }
