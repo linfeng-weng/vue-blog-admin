@@ -32,52 +32,52 @@
 <script setup>
     import { ref } from 'vue'
     import { getTag, addTag, deleteTag } from '@/service/index'
+    import { successPrompt } from '@/utils/messagePrompt'
+
+    /* 标签模块 */
+    const tags = ref([])
+    const showModal = ref(false)
+    const newTagName = ref('')
+    const dialogVisible = ref(false)
+    const deleteItemId = ref(null)
 
     // 获取标签
-    const tags = ref([])
     const loadTags = async () => {
         const res = await getTag()
         tags.value = res.tags
     }
+
     loadTags()
 
     // 添加标签
-    const showModal = ref(false)
-    const newTagName = ref('')
-
    const showNewTagModal = () => {
         showModal.value = true
    }
-
    const createTag = async () => {
         const name = newTagName.value.trim()
         const res = await addTag(name)
-        console.log(res)
+        successPrompt(res.message)
         newTagName.value = ''
         showModal.value = false
         loadTags()
    }
-
    const closeModal = () => {
         showModal.value = false
         newTagName.value = ''
    }
 
     //删除分类 
-    const dialogVisible = ref(false)
-    const deleteItemId = ref(null)
-
     const showDeleteDialog = (id) => {
         deleteItemId.value = id;
         dialogVisible.value = true;
     }
-
     const deleteItem = async () => {
         const res = await deleteTag(deleteItemId.value)
-        console.log(res)
+        successPrompt(res.message)
         dialogVisible.value = false
         loadTags()
     }
+
 </script>
 
 <style lang="less" scoped>
@@ -94,21 +94,24 @@
     border: 1px dotted #dbdbdb;
     border-radius: 8px;
     color: var(--text-color);
-    font-size: 18px;
+    // font-size: 18px;
 
     .item {
         position: relative;
         margin: 20px 0;
-        padding: 10px 20px;
-        background-color: #f3f3f3;
-        letter-spacing: 1.5px;
+        padding: 8px 15px;
+        background-color: #b9b390;
+        color: #fff;
+        letter-spacing: 1px;
+        border-radius: 10px;
         cursor: default;
 
         i {
             position: absolute;
-            top: -5px;
-            right: -5px;
+            top: -2px;
+            right: -2px;
             cursor: pointer;
+            color: #fff;
 
             &:hover {
                 color: red;

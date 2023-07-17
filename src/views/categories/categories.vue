@@ -32,10 +32,16 @@
 <script setup>
     import { ref } from 'vue'
     import { addCategory, getCategory, deleteCategory } from '@/service/index'
+    import { successPrompt } from '@/utils/messagePrompt'
     
+    /* 分类模块 */
+    const categories = ref([])
+    const showModal = ref(false)
+    const newCategoryName = ref('')
+    const dialogVisible = ref(false)
+    const deleteItemId = ref(null)
 
     // 获取分类
-    const categories = ref([])
     const loadCategories = async () => {
         const res = await getCategory()
         categories.value = res.category
@@ -43,42 +49,34 @@
     loadCategories()
 
     // 添加分类
-    const showModal = ref(false)
-    const newCategoryName = ref('')
-
     const showNewCategoryModal = () => {
         showModal.value = true
     }
-
     const createCategory = async () => {
         const name = newCategoryName.value.trim()
         const res = await addCategory(name)
-        console.log(res)
+        successPrompt(res.message)
         newCategoryName.value = ''
         showModal.value = false
         loadCategories()
     }
-
     const closeModal = () => {
         showModal.value = false
         newCategoryName.value = ''
     } 
 
     // 删除分类
-    const dialogVisible = ref(false)
-    const deleteItemId = ref(null)
-
     const showDeleteDialog = (id) => {
         deleteItemId.value = id;
         dialogVisible.value = true;
     }
-
     const deleteItem = async () => {
         const res = await deleteCategory(deleteItemId.value)
-        console.log(res)
+        successPrompt(res.message)
         dialogVisible.value = false
         loadCategories()
     }
+
 </script>
 
 <style lang="less" scoped>

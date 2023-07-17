@@ -3,9 +3,7 @@ import http from '../request/index'
 export function addArticle(data) {
     return http.post({
         url: '/articles',
-        data: {
-            ...data
-        }
+        data,
     })
 }
 
@@ -18,14 +16,21 @@ export function getArticle(page) {
    })
 }
 
-export function deleteArticle(id) {
-    return http.delete({
-        url: `/article/${id}`
+export function getArticleById(id) {
+    return http.get({
+        url:  `/articles/${id}`
     })
 }
 
-export function updateArticle(id) {
+export function deleteArticle(id) {
+    return http.delete({
+        url: `/articles/${id}`
+    })
+}
+
+export function updateArticle(id, data) {
     return http.patch({
-        url: `/article/${id}`
+        url: `/articles/${id}`,
+        data,
     })
 }

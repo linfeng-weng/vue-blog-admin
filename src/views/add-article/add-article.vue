@@ -1,7 +1,7 @@
 <template>
     <div class="add-article container">
         <div class="header">
-            <span>返回</span>
+            <span @click="router.go(-1)">返回</span>
             <button @click="dialogVisible = true" class="publish">发布</button>
             <el-dialog v-model="dialogVisible" title="Tips" width="30%">
                 <span>确定发布文章吗</span>
@@ -45,23 +45,25 @@
                 <input v-model="titleValue" placeholder="文章标题...">
             </div>
             <Editor style="height: 700px; overflow-y: hidden;" v-model="valueHtml" :defaultConfig="editorConfig"
-                :mode="mode" @onCreated="handleCreated" @onChange="handleChange" />
+                :mode="mode" @onCreated="handleCreated" />
         </div>
     </div>
 </template>
 
 <script setup>
     import '@wangeditor/editor/dist/css/style.css' // 引入 css
-    import { onBeforeUnmount, ref, shallowRef, toRaw } from 'vue'
+    import { onBeforeUnmount, ref, shallowRef, toRaw, onDeactivated, onActivated } from 'vue'
     import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
-    import { addArticle, deleteArticle, updateArticle, getArticle, getCategory, getTag } from '@/service/index'
+    import { addArticle, getCategory, getTag, uploadFile } from '@/service/index'
+    import { useRouter } from 'vue-router'
+    import { successPrompt, errorPrompt } from '@/utils/messagePrompt'
 
-    /* 编辑器配置 */
-    // 编辑器实例，必须用 shallowRef
-    const editorRef = shallowRef()
-    // 内容 HTML
-    const valueHtml = ref('')
-    const mode = 'simple'
+    const router = useRouter()
+
+    /* 编辑器配置模块 */
+    const editorRef = shallowRef()  // 编辑器实例，必须用 shallowRef
+    const valueHtml = ref('')   // 内容 HTML
+    const mode = 'simple'   //模式
     const toolbarConfig = {
         excludeKeys : ['fullScreen','insertVideo']
     }
@@ -73,57 +75,79 @@
         if (editor == null) return
         editor.destroy()
     })
-
     const handleCreated = (editor) => {
       editorRef.value = editor // 记录 editor 实例，重要！
     }
 
-   const handleChange = (editor) => {
-    console.log(valueHtml.value)
-   }
-
-    // 获取分类内容
+    /* 文章模块 */
     const categoryValue = ref('')
     const categories = ref([])
+    const tagValue = ref([])
+    const tags = ref([])
+    const fd = new FormData()
+    const previewImage = ref(null)
+    const titleValue = ref('')
+    const dialogVisible = ref(false)
+    let success = false
+
+    // 获取分类选项
     getCategory().then(res => {
         categories.value = res.category
     })
-
-    // 获取标签内容
-    const tagValue = ref([])
-    const tags = ref([])
+    // 获取标签选项
     getTag().then(res => {
         tags.value = res.tags
     })
 
     // 封面操作
-    const fd = new FormData();
-    const previewImage = ref(null);
     const handleFileUpload = (event) => {
-      const file = event.target.files[0];
-      fd.append("file", file);
-      console.log(fd.get("file"));
-
+      const file = event.target.files[0]
+      fd.append('file', file)
       if (file) {
-        previewImage.value = URL.createObjectURL(file);
-        console.log(previewImage.value);
+        previewImage.value = URL.createObjectURL(file)
       }
-    }
-    
-    // 标题
-    const titleValue = ref('')
+    }   
 
-    // 发布文章
-    const dialogVisible = ref(false)
+    // 发布文章   
+  
     const createArticle = async () => {
-        const data = {
-            title: titleValue.value,
-            content: valueHtml.value,
-            category: categoryValue.value,
-            tags: toRaw(tagValue.value)
+        // 上传图片到后台获取图片文件名
+        const upload = await uploadFile(fd)
+        const cover = upload.coverUrl
+        const title = titleValue.value
+        const content = valueHtml.value
+        const category = categoryValue.value
+        const tags = toRaw(tagValue.value)
+        
+        const data = { cover, title, content, category, tags }
+        
+        const res = await addArticle(data)
+
+        dialogVisible.value = false
+        if(res.code === 1) {
+            success = true
+            successPrompt(res.message)
+            router.push('/articles')
+        }else {
+            errorPrompt(res.message)
         }
-        console.log(data)
+
     }
+
+    onActivated(() => {
+        success = false
+    })
+
+    onDeactivated(() => {
+        console.log(success)
+        if(success) {
+            valueHtml.value = ''
+            titleValue.value = ''
+            categoryValue.value = ''
+            tagValue.value = []
+            previewImage.value = ''
+        }
+    })
 
 </script>
 

@@ -18,8 +18,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(item, index) in tableData" :key="index">
-                        <td class="date">{{ item.date }}</td>
+                    <tr v-for="item in articleList" :key="item._id">
+                        <td class="date">{{ formatDate(item.created_at, 'YYYY-MM-DD') }}</td>
                         <td class="title">{{ item.title }}</td>
                         <td class="category">{{ item.category }}</td>
                         <td class="tags">
@@ -28,24 +28,64 @@
                             </template>
                         </td>
                         <td class="operation">
-                            <button class="btn-edit" @click="editItem(index)">编辑</button>
-                            <button class="btn-delete" @click="deleteItem(index)">删除</button>
+                            <button class="btn-edit" @click="editItem(item._id)">编辑</button>
+                            <button class="btn-delete" @click="deleteItem(item._id)">删除</button>
                         </td>
                     </tr>
                 </tbody>
             </table>
+            <el-dialog v-model="dialogVisible" title="Tips" width="30%">
+                <span>确定删除文章吗</span>
+                <template #footer>
+                    <span class="dialog-footer">
+                        <el-button @click="dialogVisible = false">取消</el-button>
+                        <el-button type="primary" @click="deleteConfirm">
+                            确定
+                        </el-button>
+                    </span>
+                </template>
+            </el-dialog>
         </div>
     </div>
 </template>
 
 <script setup>
+    import { ref, onActivated, onDeactivated } from 'vue'
+    import { deleteArticle, updateArticle, getArticle } from '@/service/index'
+    import { formatDate } from '@/utils/formatDate'
+    import { useRouter } from 'vue-router'
+    import useArticleStore from '@/stores/modules/article'
+    import { storeToRefs } from 'pinia'
+    import { successPrompt } from '@/utils/messagePrompt'
 
+    const router = useRouter()
 
-    const tableData = [
-        { date: '2023-07-01', title: '标题1标题1标题1标题1标题1标题1标题1标题1标题1标题1标题1', category: '内容1' , tags: ['vue', '前端']},
-        { date: '2023-07-02', title: '标题2', category: '内容2' },
-        { date: '2023-07-03', title: '标题3', category: '内容3' },
-    ]
+    const articleStore = useArticleStore()
+    articleStore.fetchArticleList()
+    const { articleList } = storeToRefs(articleStore)
+
+    onActivated(() => {
+        articleStore.fetchArticleList()
+    })
+
+    // 编辑文章
+    const editItem = (id) => {
+        router.push(`/edit/${id}`)
+    }
+
+    // 删除文章
+    const dialogVisible = ref(false)
+    const deleteId = ref('')
+    const deleteItem = (id) => {
+        dialogVisible.value = true
+        deleteId.value = id
+    }
+    const deleteConfirm = async () => {
+        dialogVisible.value = false
+        const res = await deleteArticle(deleteId.value)
+        successPrompt(res.message)
+        articleStore.fetchArticleList()
+    }
 </script>
 
 <style lang="less" scoped>

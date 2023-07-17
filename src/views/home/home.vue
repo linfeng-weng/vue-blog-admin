@@ -20,7 +20,11 @@
                     </el-menu>
                 </el-col>
                 <el-col :span="21" class="view">
-                    <router-view></router-view>
+                    <router-view v-slot="{ Component }">
+                        <keep-alive :exclude="['edit-article']">
+                            <component :is="Component" />
+                        </keep-alive>
+                    </router-view>
                 </el-col>
             </el-row>
         </template>
@@ -29,7 +33,7 @@
 
 <script setup>
     import NavBar from '@/components/nav-bar/nav-bar.vue'
-    import login from '../login/login.vue'
+    import Login from '../login/login.vue'
     import { computed } from 'vue'
     import { useRoute } from 'vue-router'
     const route = useRoute()

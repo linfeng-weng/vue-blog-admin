@@ -24,11 +24,13 @@ const router = createRouter({
             component: () => import('@/views/tags/tags.vue')
         },
         {
+            name: 'Add',
             path: '/add',
             component: () => import('@/views/add-article/add-article.vue')
         },
         {
-            path: '/edit',
+            name: 'Edit',
+            path: '/edit/:id',
             component: () => import('@/views/edit-article/edit-article.vue')
         },
     ]
