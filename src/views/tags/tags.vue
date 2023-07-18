@@ -55,11 +55,13 @@
    }
    const createTag = async () => {
         const name = newTagName.value.trim()
-        const res = await addTag(name)
-        successPrompt(res.message)
+        if(name !== '') {
+            const res = await addTag(name)
+            successPrompt(res.message)
+            loadTags()
+        }
         newTagName.value = ''
         showModal.value = false
-        loadTags()
    }
    const closeModal = () => {
         showModal.value = false
@@ -73,6 +75,7 @@
     }
     const deleteItem = async () => {
         const res = await deleteTag(deleteItemId.value)
+        console.log(res)
         successPrompt(res.message)
         dialogVisible.value = false
         loadTags()
@@ -90,7 +93,6 @@
     align-items: center;
     flex-wrap: wrap;
     column-gap: 60px;
-    // box-shadow: 0 4px 14px hsl(355deg 25% 15% / 10%);
     border: 1px dotted #dbdbdb;
     border-radius: 8px;
     color: var(--text-color);

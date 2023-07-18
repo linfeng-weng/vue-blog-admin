@@ -155,7 +155,7 @@
         if(res.code === 1) {
             successPrompt(res.message)
             articleStore.fetchArticleList()
-            router.push('/articles')
+            router.push('/home/articles')
         }
     }
 

@@ -54,11 +54,13 @@
     }
     const createCategory = async () => {
         const name = newCategoryName.value.trim()
-        const res = await addCategory(name)
-        successPrompt(res.message)
+        if(name !== '') {
+            const res = await addCategory(name)
+            successPrompt(res.message)
+            loadCategories()
+        }
         newCategoryName.value = ''
         showModal.value = false
-        loadCategories()
     }
     const closeModal = () => {
         showModal.value = false
@@ -72,6 +74,7 @@
     }
     const deleteItem = async () => {
         const res = await deleteCategory(deleteItemId.value)
+        console.log(res)
         successPrompt(res.message)
         dialogVisible.value = false
         loadCategories()

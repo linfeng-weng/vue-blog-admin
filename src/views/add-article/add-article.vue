@@ -127,7 +127,7 @@
         if(res.code === 1) {
             success = true
             successPrompt(res.message)
-            router.push('/articles')
+            router.push('/home/articles')
         }else {
             errorPrompt(res.message)
         }

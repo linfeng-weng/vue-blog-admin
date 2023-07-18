@@ -1,33 +1,28 @@
 <template>
     <div class="home">
-        <template v-if="false">
-            <login></login>
-        </template>
-        <template v-else>
-            <nav-bar></nav-bar>
-            <el-row class="main">
-                <el-col :span="3">
-                    <el-menu :default-active="activeIndex" router class="unselectable">
-                        <el-menu-item index="/articles">
-                            <span>文章管理</span>
-                        </el-menu-item>
-                        <el-menu-item index="/categories">
-                            <span>分类管理</span>
-                        </el-menu-item>
-                        <el-menu-item index="/tags">
-                            <span>标签管理</span>
-                        </el-menu-item>
-                    </el-menu>
-                </el-col>
-                <el-col :span="21" class="view">
-                    <router-view v-slot="{ Component }">
-                        <keep-alive :exclude="['edit-article']">
-                            <component :is="Component" />
-                        </keep-alive>
-                    </router-view>
-                </el-col>
-            </el-row>
-        </template>
+        <nav-bar></nav-bar>
+        <el-row class="main">
+            <el-col :span="3">
+                <el-menu :default-active="activeIndex" router class="unselectable">
+                    <el-menu-item index="/home/articles">
+                        <span>文章管理</span>
+                    </el-menu-item>
+                    <el-menu-item index="/home/categories">
+                        <span>分类管理</span>
+                    </el-menu-item>
+                    <el-menu-item index="/home/tags">
+                        <span>标签管理</span>
+                    </el-menu-item>
+                </el-menu>
+            </el-col>
+            <el-col :span="21" class="view">
+                <router-view v-slot="{ Component }">
+                    <keep-alive :exclude="['edit-article', 'login']">
+                        <component :is="Component" />
+                    </keep-alive>
+                </router-view>
+            </el-col>
+        </el-row>
     </div>
 </template>
 

@@ -6,21 +6,39 @@
         <form>
             <div class="username">
                 <label for="username">用户名:</label>
-                <input type="text" id="username" name="username" autocomplete="off" required>
+                <input type="text" id="username" v-model="username" autocomplete="off" required>
             </div>
-
             <div class="password">
                 <label for="password">密码:</label>
-                <input type="password" id="password" name="password" required>
+                <input type="password" id="password" v-model="password" required>
             </div>
             <div class="submit">
-                <input type="submit" value="登录">
+                <input type="submit" @click="login" value="登录">
             </div>
         </form>
     </div>
 </template>
 
 <script setup>
+    import { ref } from 'vue'
+    import { userLogin } from '@/service/modules/user'
+    import useUserStore  from '@/stores/modules/user'
+    import { useRouter } from 'vue-router'
+
+    const router = useRouter()
+    const userStore = useUserStore()
+
+    const username = ref('')
+    const password = ref('')
+
+    const login = async () => {
+        const res = await userLogin(username, password)
+        console.log(res)
+        const newToken = 'Bearer ' + res.token
+        userStore.changeLogin(newToken)
+        userStore.isLogin = true
+        router.push('')
+    }
     
 </script>
 

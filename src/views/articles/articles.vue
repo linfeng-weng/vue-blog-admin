@@ -2,7 +2,7 @@
     <div class="articles container">
         <div class="header">
             <h2>文章管理</h2>
-            <router-link to="/add">
+            <router-link to="/home/add">
                 <button>写文章</button>
             </router-link>
         </div>
@@ -70,7 +70,7 @@
 
     // 编辑文章
     const editItem = (id) => {
-        router.push(`/edit/${id}`)
+        router.push(`/home/edit/${id}`)
     }
 
     // 删除文章
