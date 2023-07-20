@@ -1,5 +1,5 @@
 <template>
-    <div class="nav-bar">
+    <div class="nav-bar unselectable">
         <div class="nav">
             <div class="logo">欲知<span style="color: var(--second-color);">新</span></div>
             <div class="logout" @click="dialogVisible = true">退出登录</div>
@@ -22,13 +22,17 @@
 <script setup>
     import { ref } from 'vue'
     import { successPrompt } from '@/utils/messagePrompt'
+    import router from '@/router'
 
 
     const dialogVisible = ref(false)
     const logoutConfirm = () => {
-        console.log(11)
+        localStorage.removeItem('token')
         dialogVisible.value = false
-        successPrompt('登出成功')
+        successPrompt('成功退出！')
+        setTimeout(() => {
+            router.push('/login')
+        },500)
     }
 </script>
 

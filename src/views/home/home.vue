@@ -17,7 +17,7 @@
             </el-col>
             <el-col :span="21" class="view">
                 <router-view v-slot="{ Component }">
-                    <keep-alive :exclude="['edit-article', 'login']">
+                    <keep-alive :exclude="['add-article', 'edit-article', 'login']">
                         <component :is="Component" />
                     </keep-alive>
                 </router-view>

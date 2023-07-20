@@ -7,6 +7,12 @@ export function addArticle(data) {
     })
 }
 
+export function totalArticle() {
+    return http.get({
+        url: '/articles/total'
+    })
+}
+
 export function getArticle(page) {
    return http.get({
     url: '/articles',

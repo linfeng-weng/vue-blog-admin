@@ -1,9 +1,9 @@
 import http from '../request/index'
 
 export function userLogin(username, password) {
-    return http.get({
+    return http.post({
         url: '/user/login',
-        params: {
+        data: {
             username,
             password
         }

@@ -2,7 +2,7 @@
     <div class="add-article container">
         <div class="header">
             <span @click="router.go(-1)">返回</span>
-            <button @click="dialogVisible = true" class="publish">发布</button>
+            <button @click="publish" class="publish">发布</button>
             <el-dialog v-model="dialogVisible" title="Tips" width="30%">
                 <span>确定发布文章吗</span>
                 <template #footer>
@@ -33,7 +33,7 @@
             <div class="tags">
                 <p>* 选择标签：</p>
                 <el-select v-model="tagValue" multiple placeholder="Select" style="width: 240px">
-                    <el-option v-for="item in tags" :key="item.name" :value="item.name" />
+                    <el-option v-for="item in tagItems" :key="item.name" :value="item.name" />
                 </el-select>
             </div>
         </div>
@@ -52,7 +52,7 @@
 
 <script setup>
     import '@wangeditor/editor/dist/css/style.css' // 引入 css
-    import { onBeforeUnmount, ref, shallowRef, toRaw, onDeactivated, onActivated } from 'vue'
+    import { onBeforeUnmount, ref, shallowRef, toRaw } from 'vue'
     import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
     import { addArticle, getCategory, getTag, uploadFile } from '@/service/index'
     import { useRouter } from 'vue-router'
@@ -83,12 +83,11 @@
     const categoryValue = ref('')
     const categories = ref([])
     const tagValue = ref([])
-    const tags = ref([])
+    const tagItems = ref([])
     const fd = new FormData()
     const previewImage = ref(null)
     const titleValue = ref('')
     const dialogVisible = ref(false)
-    let success = false
 
     // 获取分类选项
     getCategory().then(res => {
@@ -96,7 +95,7 @@
     })
     // 获取标签选项
     getTag().then(res => {
-        tags.value = res.tags
+        tagItems.value = res.tags
     })
 
     // 封面操作
@@ -106,48 +105,39 @@
       if (file) {
         previewImage.value = URL.createObjectURL(file)
       }
-    }   
-
-    // 发布文章   
-  
-    const createArticle = async () => {
-        // 上传图片到后台获取图片文件名
-        const upload = await uploadFile(fd)
-        const cover = upload.coverUrl
-        const title = titleValue.value
-        const content = valueHtml.value
-        const category = categoryValue.value
-        const tags = toRaw(tagValue.value)
-        
-        const data = { cover, title, content, category, tags }
-        
-        const res = await addArticle(data)
-
-        dialogVisible.value = false
-        if(res.code === 1) {
-            success = true
-            successPrompt(res.message)
-            router.push('/home/articles')
-        }else {
-            errorPrompt(res.message)
-        }
-
     }
 
-    onActivated(() => {
-        success = false
-    })
+    // 验证文章内容是否为空
+    const publish = () => {
+        const content = valueHtml.value === '<p><br></p>' ? '' : valueHtml.value
+        if(titleValue.value && content && categoryValue.value && toRaw(tagValue.value).length) {
+            dialogVisible.value = true
+        }else {
+            errorPrompt('请完善所有文章信息！', 1500)
+        }  
+    }
+    // 发布文章
+    const createArticle = async () => {
+        // 上传图片到后台获取图片文件名
+        try {
+            const upload = await uploadFile(fd)
+            const cover = upload.coverUrl
+            const title = titleValue.value
+            const content = valueHtml.value
+            const category = categoryValue.value
+            const tags = toRaw(tagValue.value)
+            
+            const data = { cover, title, content, category, tags }
+            const res = await addArticle(data)
+            dialogVisible.value = false
+            successPrompt(res.message)
+            router.push('/home/articles')
 
-    onDeactivated(() => {
-        console.log(success)
-        if(success) {
-            valueHtml.value = ''
-            titleValue.value = ''
-            categoryValue.value = ''
-            tagValue.value = []
-            previewImage.value = ''
+        } catch (error) {
+            errorPrompt(error.response.data.message)
         }
-    })
+        
+    }
 
 </script>
 
@@ -176,6 +166,11 @@
             color: #fff;
             background-color: var(--second-color);
             cursor: pointer;
+
+            &:hover {
+                background-color: #e18c53;
+                transition: all 0.3s;
+            }
         }
     }
 

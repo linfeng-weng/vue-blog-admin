@@ -45,13 +45,18 @@
                     </span>
                 </template>
             </el-dialog>
+            <div class="pagination">
+                <el-pagination background layout="prev, pager, next" :page-size="limit" :total="total"
+                    v-model:current-page="currentPage" @click="pageClick"
+                    :hide-on-single-page="currentPage === 1 ? true : false" />
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-    import { ref, onActivated, onDeactivated } from 'vue'
-    import { deleteArticle, updateArticle, getArticle } from '@/service/index'
+    import { ref, onActivated } from 'vue'
+    import { deleteArticle } from '@/service/index'
     import { formatDate } from '@/utils/formatDate'
     import { useRouter } from 'vue-router'
     import useArticleStore from '@/stores/modules/article'
@@ -61,12 +66,13 @@
     const router = useRouter()
 
     const articleStore = useArticleStore()
-    articleStore.fetchArticleList()
-    const { articleList } = storeToRefs(articleStore)
-
-    onActivated(() => {
+    const { articleList, limit, total, currentPage } = storeToRefs(articleStore)
+    
+    const pageClick = () => {
+        // 根据currentPage获取对应页面数据
         articleStore.fetchArticleList()
-    })
+    }
+    
 
     // 编辑文章
     const editItem = (id) => {
@@ -81,11 +87,28 @@
         deleteId.value = id
     }
     const deleteConfirm = async () => {
-        dialogVisible.value = false
-        const res = await deleteArticle(deleteId.value)
-        successPrompt(res.message)
-        articleStore.fetchArticleList()
+        try {
+            dialogVisible.value = false
+            const res = await deleteArticle(deleteId.value)
+            successPrompt(res.message)
+            await articleStore.fetchTotalArticle()
+            console.log(currentPage.value, total.value, limit.value)
+            if(total.value === 0) {
+                currentPage.value = 1
+            }else {
+                currentPage.value = currentPage.value > Math.ceil(total.value/limit.value) ? currentPage.value - 1 : currentPage.value
+            }
+            articleStore.fetchArticleList()
+        } catch (error) {
+            console.log(error)
+        }
     }
+
+    onActivated(() => {
+        articleStore.fetchTotalArticle()
+        articleStore.fetchArticleList()
+    })
+    
 </script>
 
 <style lang="less" scoped>
@@ -103,7 +126,7 @@
             cursor: pointer;
 
             &:hover {
-                background-color: #dd8245;
+                background-color: #e18c53;
                 transition: all 0.3s;
             }
         }
@@ -111,84 +134,89 @@
 
     .table {
         padding: 40px;
-    }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        color: #6b6c70;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #6b6c70;
 
-        th {
-            color: #909399
-        }
+            th {
+                color: #909399
+            }
 
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
+            th,
+            td {
+                border: 1px solid #ddd;
+                padding: 8px;
+            }
 
-        .date {
-            width: 180px;
-            text-align: center;
-        }
+            .date {
+                width: 180px;
+                text-align: center;
+            }
 
-        .title {
-            max-width: 200px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+            .title {
+                max-width: 200px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
 
-        .category {
-            width: 150px;
-            text-align: center;
-        }
+            .category {
+                width: 150px;
+                text-align: center;
+            }
 
-        .tags {
-            width: 200px;
-            font-size: 14px;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            .tags {
+                width: 200px;
+                font-size: 14px;
+                text-align: center;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
 
-            span {
-                padding: 1px 3px;
-                color: #fff;
-                background-color: #b9b390;
-                margin-right: 5px;
+                span {
+                    padding: 1px 3px;
+                    color: #fff;
+                    background-color: #b9b390;
+                    margin-right: 5px;
+                    border-radius: 3px;
+
+                }
+            }
+
+            .operation {
+                width: 200px;
+                font-size: 14px;
+                text-align: center;
+            }
+
+            .btn-edit {
+                margin: 0 5px;
+                padding: 4px 8px;
+                border: none;
                 border-radius: 3px;
+                background-color: var(--second-color);
+                color: #fff;
+                cursor: pointer;
+            }
 
+            .btn-delete {
+                padding: 4px 8px;
+                border: none;
+                border-radius: 3px;
+                background-color: red;
+                color: #fff;
+                cursor: pointer;
             }
         }
 
-        .operation {
-            width: 200px;
-            font-size: 14px;
-            text-align: center;
-        }
-
-        .btn-edit {
-            margin: 0 5px;
-            padding: 4px 8px;
-            border: none;
-            border-radius: 3px;
-            background-color: var(--second-color);
-            color: #fff;
-            cursor: pointer;
-        }
-
-        .btn-delete {
-            padding: 4px 8px;
-            border: none;
-            border-radius: 3px;
-            background-color: red;
-            color: #fff;
-            cursor: pointer;
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
         }
     }
-
 }
 
 

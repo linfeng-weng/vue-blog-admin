@@ -50,7 +50,7 @@
 
     // 添加分类
     const showNewCategoryModal = () => {
-        showModal.value = true
+        showModal.value = !showModal.value
     }
     const createCategory = async () => {
         const name = newCategoryName.value.trim()
@@ -74,7 +74,6 @@
     }
     const deleteItem = async () => {
         const res = await deleteCategory(deleteItemId.value)
-        console.log(res)
         successPrompt(res.message)
         dialogVisible.value = false
         loadCategories()
@@ -130,6 +129,12 @@
         border-radius: 5px;
         color: #fff;
         background-color: var(--second-color);
+        cursor: pointer;
+
+        &:hover {
+            background-color: #e18c53;
+            transition: all 0.3s;
+        }
     }
 
     .content {
@@ -150,6 +155,7 @@
             padding: 5px 10px;
             background-color: var(--second-color);
             color: #fff;
+            cursor: pointer;
 
             &:last-child {
                 background-color: rgb(172, 172, 172);

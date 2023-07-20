@@ -2,7 +2,7 @@
     <div class="edit-article container">
         <div class="header">
             <span @click="router.go(-1)">返回</span>
-            <button @click="dialogVisible = true" class="publish">发布</button>
+            <button @click="publish" class="publish">发布</button>
             <el-dialog v-model="dialogVisible" title="Tips" width="30%">
                 <span>确定发布文章吗</span>
                 <template #footer>
@@ -33,7 +33,7 @@
             <div class="tags">
                 <p>* 选择标签：</p>
                 <el-select v-model="tagValue" multiple placeholder="Select" style="width: 240px">
-                    <el-option v-for="item in tags" :key="item.name" :value="item.name" />
+                    <el-option v-for="item in tagItems" :key="item.name" :value="item.name" />
                 </el-select>
             </div>
         </div>
@@ -58,10 +58,9 @@
     import useArticleStore from '@/stores/modules/article'
     import { Server_URL } from '@/service/request/config'
     import { updateArticle,  getArticleById, getCategory, getTag, uploadFile } from '@/service/index'
-    import { successPrompt } from '@/utils/messagePrompt'
+    import { successPrompt, errorPrompt } from '@/utils/messagePrompt'
 
     
-    const articleStore = useArticleStore()
     const router = useRouter()
     const route = useRoute()
 
@@ -77,9 +76,7 @@
     const handleCreated = (editor) => {
       editorRef.value = editor // 记录 editor 实例，重要！
     }
-//    const handleChange = (editor) => {
-//     console.log(valueHtml.value)
-//    }
+
     // 组件销毁时，也及时销毁编辑器
     onBeforeUnmount(() => {
         const editor = editorRef.value
@@ -92,7 +89,7 @@
     const categoryValue = ref('')
     const categories = ref([])
     const tagValue = ref([])
-    const tags = ref([])
+    const tagItems = ref([])
     const titleValue = ref('')
     const fd = new FormData();
     const previewImage = ref(null);
@@ -105,7 +102,7 @@
     })
     // 获取标签内容
     getTag().then(res => {
-        tags.value = res.tags
+        tagItems.value = res.tags
     })
 
     // 初始化
@@ -113,8 +110,8 @@
         const articleId = route.params.id
         const res = await getArticleById(articleId)
         const { cover, tags, category, title, content } = res.article
+        
         tempCover = cover
-
         previewImage.value = Server_URL + cover
         tagValue.value = tags
         categoryValue.value = category
@@ -132,30 +129,42 @@
         }
     }
 
+    // 验证文章内容是否为空
+    const publish = () => {
+        const content = valueHtml.value === '<p><br></p>' ? '' : valueHtml.value
+        if(titleValue.value && content && categoryValue.value && toRaw(tagValue.value).length) {
+            dialogVisible.value = true
+        }else {
+            errorPrompt('请完善所有文章信息！', 1500)
+        }  
+    }
+
     // 发布文章
     const createArticle = async () => {
-        // 判断封面图片是否改变
-        if(fd.get('file')) {
-            // 上传图片到后台获取图片文件名
-            const upload = await uploadFile(fd)
-            tempCover = upload.coverUrl
-        }
-        const cover = tempCover
-        const title = titleValue.value
-        const content = valueHtml.value
-        const category = categoryValue.value
-        const tags = toRaw(tagValue.value)
-        
-        const data = { cover, title, content, category, tags }
-        
-        const res = await updateArticle(route.params.id, data)
-        console.log(res)
-        dialogVisible.value = false
+        try {
+            // 判断封面图片是否改变
+            if(fd.get('file')) {
+                // 上传图片到后台获取图片文件名
+                const upload = await uploadFile(fd)
+                tempCover = upload.coverUrl
+            }
+            const cover = tempCover
+            const title = titleValue.value
+            const content = valueHtml.value
+            const category = categoryValue.value
+            const tags = toRaw(tagValue.value)
+            
+            const data = { cover, title, content, category, tags }
+            
+            const res = await updateArticle(route.params.id, data)
 
-        if(res.code === 1) {
+            dialogVisible.value = false
+
             successPrompt(res.message)
-            articleStore.fetchArticleList()
             router.push('/home/articles')
+
+        } catch (error) {
+            errorPrompt(error.response.data.message)
         }
     }
 
@@ -186,6 +195,11 @@
             color: #fff;
             background-color: var(--second-color);
             cursor: pointer;
+
+            &:hover {
+                background-color: #e18c53;
+                transition: all 0.3s;
+            }
         }
     }
 

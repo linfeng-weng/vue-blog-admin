@@ -3,7 +3,7 @@
         <div class="title">
             <h1>YUZHI<span>XIN</span> Admin</h1>
         </div>
-        <form>
+        <form @submit.prevent>
             <div class="username">
                 <label for="username">用户名:</label>
                 <input type="text" id="username" v-model="username" autocomplete="off" required>
@@ -24,6 +24,7 @@
     import { userLogin } from '@/service/modules/user'
     import useUserStore  from '@/stores/modules/user'
     import { useRouter } from 'vue-router'
+    import { successPrompt, errorPrompt } from '@/utils/messagePrompt'
 
     const router = useRouter()
     const userStore = useUserStore()
@@ -32,12 +33,18 @@
     const password = ref('')
 
     const login = async () => {
-        const res = await userLogin(username, password)
-        console.log(res)
-        const newToken = 'Bearer ' + res.token
-        userStore.changeLogin(newToken)
-        userStore.isLogin = true
-        router.push('')
+        try {
+            const res = await userLogin(username.value, password.value)
+            const token = res.token
+            userStore.changeLogin(token)
+            successPrompt(res.message)
+            setTimeout(() => {
+                router.push('/home/articles')
+            },500)
+
+        } catch (error) {
+            errorPrompt(error.response.data.message)
+        }
     }
     
 </script>
@@ -45,7 +52,7 @@
 <style lang="less" scoped>
 .login {
     background: var(--container-color);
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;

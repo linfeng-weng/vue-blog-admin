@@ -2,13 +2,12 @@ import { defineStore } from "pinia"
 
 const useUserStore = defineStore('user', {
     state: () => ({
-        Authorization: localStorage.getItem('Authorization') ? localStorage.getItem('Authorization') : '',
-        isLogin: false
+        token: localStorage.getItem('token') ? localStorage.getItem('token') : '',
     }),
     actions: {
-        changeLogin(newToken) {
-            this.Authorization = newToken
-            localStorage.setItem('Authorization', newToken)
+        changeLogin(Token) {
+            this.token = Token
+            localStorage.setItem('token', Token)
         }
     }
 
