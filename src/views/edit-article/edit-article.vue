@@ -39,13 +39,12 @@
         </div>
 
         <div style="border: 1px solid #ccc">
-            <Toolbar style="border-bottom: 1px solid #ccc" :editor="editorRef" :defaultConfig="toolbarConfig"
-                :mode="mode" />
+            <Toolbar class="toolbar" :editor="editorRef" :defaultConfig="toolbarConfig" :mode="mode" />
             <div class="title">
                 <input v-model="titleValue" placeholder="文章标题...">
             </div>
-            <Editor style="height: 700px; overflow-y: hidden;" v-model="valueHtml" :defaultConfig="editorConfig"
-                :mode="mode" @onCreated="handleCreated" />
+            <Editor style="min-height: 600px;" v-model="valueHtml" :defaultConfig="editorConfig" :mode="mode"
+                @onCreated="handleCreated" />
         </div>
     </div>
 </template>
@@ -70,7 +69,7 @@
     const valueHtml = ref('')   // 内容 HTML
     const mode = 'simple'   //模式
     const toolbarConfig = { excludeKeys : ['fullScreen','insertVideo'] }
-    const editorConfig = { placeholder: '请输入内容...' }
+    const editorConfig = { placeholder: '请输入内容...', scroll: false, }
 
 
     const handleCreated = (editor) => {
@@ -261,6 +260,13 @@
             display: flex;
             align-items: center;
         }
+    }
+
+    .toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 9;
+        border-bottom: 1px solid #ccc;
     }
 
     .title {
