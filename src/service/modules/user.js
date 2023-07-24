@@ -9,3 +9,9 @@ export function userLogin(username, password) {
         }
     }) 
 }
+
+export function judgeToken() {
+    return http.get({
+        url: '/user/'
+    })
+}
