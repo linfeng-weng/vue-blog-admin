@@ -66,7 +66,15 @@
     const toolbarConfig = {
         excludeKeys : ['fullScreen','insertVideo']
     }
-    const editorConfig = { placeholder: '请输入内容...', scroll: false, }
+    const editorConfig = {
+        placeholder: '请输入内容...', 
+        scroll: false,
+        MENU_CONF: {
+            uploadImage: {
+                base64LimitSize: 10 * 1024 * 1024 // 10M 以下插入 base64
+            }
+        }
+    }
 
     // 组件销毁时，也及时销毁编辑器
     onBeforeUnmount(() => {

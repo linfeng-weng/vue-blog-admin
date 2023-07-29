@@ -39,7 +39,7 @@
 <style lang="less" scoped>
 .nav-bar {
     position: fixed;
-    z-index: 2;
+    z-index: 99;
 }
 
 .nav {

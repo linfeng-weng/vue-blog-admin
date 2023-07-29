@@ -54,7 +54,6 @@
     import { onBeforeUnmount, ref, shallowRef, toRaw } from 'vue'
     import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
     import { useRouter, useRoute } from 'vue-router'
-    import useArticleStore from '@/stores/modules/article'
     import { Server_URL } from '@/service/request/config'
     import { updateArticle,  getArticleById, getCategory, getTag, uploadFile } from '@/service/index'
     import { successPrompt, errorPrompt } from '@/utils/messagePrompt'
@@ -69,7 +68,15 @@
     const valueHtml = ref('')   // 内容 HTML
     const mode = 'simple'   //模式
     const toolbarConfig = { excludeKeys : ['fullScreen','insertVideo'] }
-    const editorConfig = { placeholder: '请输入内容...', scroll: false, }
+    const editorConfig = {
+        placeholder: '请输入内容...', 
+        scroll: false,
+        MENU_CONF: {
+            uploadImage: {
+                base64LimitSize: 10 * 1024 * 1024 // 10M 以下插入 base64
+            }
+        }
+    }
 
 
     const handleCreated = (editor) => {
