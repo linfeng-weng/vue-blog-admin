@@ -159,8 +159,12 @@
             const content = valueHtml.value
             const category = categoryValue.value
             const tags = toRaw(tagValue.value)
+
+            const processedText = editorRef.value.getText().trim().replace(/\n/g, ' ')
+            const abstract = processedText.substring(0, 120);
             
-            const data = { cover, title, content, category, tags }
+
+            const data = { cover, title, content, abstract, category, tags }
             
             const res = await updateArticle(route.params.id, data)
 

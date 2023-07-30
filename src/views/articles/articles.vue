@@ -92,7 +92,6 @@
             const res = await deleteArticle(deleteId.value)
             successPrompt(res.message)
             await articleStore.fetchTotalArticle()
-            console.log(currentPage.value, total.value, limit.value)
             if(total.value === 0) {
                 currentPage.value = 1
             }else {
