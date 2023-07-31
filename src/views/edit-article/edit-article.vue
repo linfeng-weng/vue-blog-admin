@@ -44,7 +44,7 @@
                 <input v-model="titleValue" placeholder="文章标题...">
             </div>
             <Editor style="min-height: 600px;" v-model="valueHtml" :defaultConfig="editorConfig" :mode="mode"
-                @onCreated="handleCreated" />
+                @onCreated="handleCreated" @onFocus="editorFocus" />
         </div>
     </div>
 </template>
@@ -62,25 +62,74 @@
     const router = useRouter()
     const route = useRoute()
 
-
+    
     /* 编辑器配置 */
     const editorRef = shallowRef()  // 编辑器实例，必须用 shallowRef
     const valueHtml = ref('')   // 内容 HTML
     const mode = 'simple'   //模式
+    let listOld = []  //存放已上传图片信息的数组
+    let idx = 0 //判断用户是否有点击编辑器
     const toolbarConfig = { excludeKeys : ['fullScreen','insertVideo'] }
     const editorConfig = {
         placeholder: '请输入内容...', 
         scroll: false,
+        autoFocus: false,
         MENU_CONF: {
+            insertImage: {
+                onInsertedImage(imageNode) {
+                    if (imageNode == null) return
+                    listOld.push(imageNode.alt)
+                },
+            },
+            editImage: {
+                onUpdatedImage(imageNode) {
+                    if (imageNode == null) return
+                }
+            },
             uploadImage: {
-                base64LimitSize: 10 * 1024 * 1024 // 10M 以下插入 base64
+                server: `${Server_URL}/api/uploads`,
+                fieldName: 'file',
+                maxFileSize: 3 * 1024 * 1024, //文件最大体积限制
+                allowedFileTypes: ['image/*'],
+                timeout: 5 * 1000,
+                headers: {
+                    Authorization: 'Bearer ' + localStorage.getItem('token')
+                }, 
+                customInsert(res, insertFn) {                  // JS 语法
+                    // res 即服务端的返回结果
+                    const url = Server_URL + res.coverUrl
+                    const alt = res.coverUrl
+                    // 从 res 中找到 url alt href ，然后插入图片
+                    insertFn(url, alt)
+                },
+                onSuccess(file, res) {          
+                    successPrompt('上传成功')
+                },
+                
+                onFailed(file, res) {           
+                    errorPrompt('上传失败')
+                },
+                onError(file, err, res) {               
+                    errorPrompt('上传出错')
+                },
+                
             }
         }
     }
 
 
     const handleCreated = (editor) => {
-      editorRef.value = editor // 记录 editor 实例，重要！
+        editorRef.value = editor // 记录 editor 实例，重要！
+    }
+
+    const editorFocus = () => {
+        if(idx === 0) {
+            idx = 1
+            const tempData = editorRef.value.getElemsByType('image')
+            listOld = tempData.map(item => {
+                return item.alt
+            })
+        }
     }
 
     // 组件销毁时，也及时销毁编辑器
@@ -91,7 +140,7 @@
     })
 
 
-    /* 文章操作 */
+    /* 文章模块 */
     const categoryValue = ref('')
     const categories = ref([])
     const tagValue = ref([])
@@ -148,6 +197,17 @@
     // 发布文章
     const createArticle = async () => {
         try {
+            let listNew = []
+            let deleteImgList = []
+            let contentImg = []
+            if(idx === 1) {
+                const tempData = editorRef.value.getElemsByType('image')
+                listNew = tempData.map(item => {
+                    return item.alt
+                })
+                contentImg = listNew
+                deleteImgList = listOld.filter(item => !listNew.includes(item))
+            }
             // 判断封面图片是否改变
             if(fd.get('file')) {
                 // 上传图片到后台获取图片文件名
@@ -164,7 +224,7 @@
             const abstract = processedText.substring(0, 120);
             
 
-            const data = { cover, title, content, abstract, category, tags }
+            const data = { cover, title, content, abstract, category, tags, contentImg, deleteImgList }
             
             const res = await updateArticle(route.params.id, data)
 
